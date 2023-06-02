@@ -1,0 +1,73 @@
+image:
+  repository: quorumengineering/quorum
+  tag: "22.7.3"
+  # <!-- # pragma: allowlist secret -->
+  sha: "085523f1ed4dd1edc8e398b9c4df606f5fbfe272b3437e43b4790cd6eb7ae753"  # pragma: allowlist secret
+  
+
+# Settings for Containers with kubectl installed used by Jobs "pre-upgrade-volumesnapshot", "propose-validators" and "final-volumesnapshot"
+kubectl:
+  ttlSecondsAfterFinished: 300
+  image:
+    # -- The repository of the container image containing kubectl
+    repository: "bitnami/kubectl"
+    tag: "1.21.14"
+    # <!-- # pragma: allowlist secret -->
+    sha: "bba32da4e7d08ce099e40c573a2a5e4bdd8b34377a1453a69bbb6977a04e8825" # pragma: allowlist secret
+    
+use_case:
+  newNetwork:
+    # -- Enable the new-network use case. Can only be used in collaboration with updatePartnerInfo use case
+    enabled: true
+    
+
+  updatePartnersInfo:
+    # -- Enable the update-partners-info use case.
+    # Can only be used in collaboration with new-network or join-network use case.
+    enabled: true
+    plugin_data_common: >-
+      {}
+
+
+serviceAccount:
+  create: true
+  annotations: 
+    eks.amazonaws.com/role-arn: "arn:aws:iam::838158121660:role/eleaflet-poc-secrets"
+ 
+secretProviderClass:
+  enabled: true
+  apiVersion: "secrets-store.csi.x-k8s.io/v1"
+  spec: 
+    provider: aws
+    parameters:
+      objects: |
+        - objectName: "arn:aws:secretsmanager:us-east-1:838158121660:secret:quorum-node-Jj73xW"
+          objectType: "secretsmanager"
+          jmesPath:
+            - path: nodekey
+              objectAlias: nodekey
+            # Key only required on new network
+            - path: key
+              objectAlias: key
+
+
+# TODO:changed
+service:
+  p2p:
+    enabled: true
+    type: LoadBalancer
+    port: 30303
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "external"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
+      service.beta.kubernetes.io/aws-load-balancer-ip-address-type: "ipv4"
+      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=true,deregistration_delay.timeout_seconds=120,deregistration_delay.connection_termination.enabled=true,stickiness.enabled=true,stickiness.type=source_ip
+      service.beta.kubernetes.io/aws-load-balancer-healthcheck-healthy-threshold: "2"
+      service.beta.kubernetes.io/aws-load-balancer-healthcheck-unhealthy-threshold: "2"
+      #service.beta.kubernetes.io/aws-load-balancer-eip-allocations: ${var.aws_nlb_eip} # "eipalloc-0c277b4b817957fcf"
+      # public subnet in us-east-1b
+      # service.beta.kubernetes.io/aws-load-balancer-subnets:${var.aws_nlb_subnet} # "subnet-03596a598bd8b0722"
+      #TODO-TF additional tags - to be populated from Terraform ?
+      #service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: Application=eleaflet,Costcenter=10000089,DataClassification=Public,Consumer=srv-epi-sandbox,Division=MMD,ContactMail=boldisj@merck.com
+  

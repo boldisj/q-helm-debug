@@ -1,0 +1,37 @@
+# POC account values - sandbox account test
+
+service:
+  p2p:
+    enabled: true
+    type: LoadBalancer
+    port: 30303
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "external"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
+      service.beta.kubernetes.io/aws-load-balancer-ip-address-type: "ipv4"
+      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=true,deregistration_delay.timeout_seconds=120,deregistration_delay.connection_termination.enabled=true,stickiness.enabled=true,stickiness.type=source_ip
+      service.beta.kubernetes.io/aws-load-balancer-healthcheck-healthy-threshold: "2"
+      service.beta.kubernetes.io/aws-load-balancer-healthcheck-unhealthy-threshold: "2"
+      service.beta.kubernetes.io/aws-load-balancer-eip-allocations: "eipalloc-0c277b4b817957fcf"
+      # public subnet in us-east-1b
+      service.beta.kubernetes.io/aws-load-balancer-subnets: "subnet-03596a598bd8b0722"
+
+  rpc:
+    # -- Whether to deploy the RPC service or not.
+    enabled: true
+    # -- Either ClusterIP, NodePort or LoadBalancer for RPC Service.
+    # See [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/)
+    type: ClusterIP
+    # -- Port where the RPC service will be exposed.
+    port: 8545
+    # -- Annotations for the RPC service.
+    # See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws)
+    # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
+    annotations: {}
+    # -- A list of CIDR ranges to whitelist for ingress traffic to the RPC service if type is LoadBalancer.
+    # If list is empty, Kubernetes allows traffic from 0.0.0.0/0 to the Node Security Group(s)
+    #TODO-TF - this should be limited to only subnets (private) where ehtadapters are deployed
+    loadBalancerSourceRanges:
+      # - 8.8.8.8/32
+      # - 8.8.4.4/32

@@ -1,0 +1,103 @@
+# Start new network
+# TODO change in dev
+image:
+  # -- The repository of the Quorum container image
+  repository: quorumengineering/quorum
+  # -- Image Pull Policy
+  pullPolicy: Always
+  # -- Image tag
+  tag: "22.7.3"
+  # <!-- # pragma: allowlist secret -->
+  sha: "085523f1ed4dd1edc8e398b9c4df606f5fbfe272b3437e43b4790cd6eb7ae753"  # pragma: allowlist secret
+
+use_case:
+  newNetwork:
+    # -- Enable the new-network use case. Can only be used in collaboration with updatePartnerInfo use case
+    enabled: false
+
+  joinNetwork:
+    # -- Enable the join-network use case. Can only be used in collaboration with updatePartnerInfo use case
+    enabled: true
+    plugin_data_common: >-
+      {
+        "enode": "joinNetwork_enode",
+        "nodeKeyPublic": "joinNetworknodeKeyPublic",
+        "genesis": "test"
+      }
+    # -- Sensitive data.
+    # A JSON object containing one attribute:
+    # 1. "nodeKey" = The secret private node key.
+    plugin_data_secrets: >-
+      {
+        "nodeKey": "6a48215687510e91859dc3a5637bc99cd9a87915a1e363ab67bfd8eeea76ff3b"
+      }
+
+
+  updatePartnersInfo:
+    enabled: true
+    plugin_data_common: >-
+      {
+      "peers": [
+        {
+            "company-name": "bayer",
+            "enode": "6288a95602c831e243be3fff48481d2785d26c844eb668535d39979dbb2de50b0acc52da8156f57a1513b3f68265cdfdc35ec033dc8f90d58f0f5c92be298e5e",
+            "enodeAddress": "3.69.217.73",
+            "enodeAddressPort": "30303",
+            "nodeKeyPublic": "0xaaBF92868622B738B81Fd4EE5a8706e1cB43aF2d",
+            "egress": "3.69.179.99"
+        },
+        {
+            "company-name": "jnj",
+            "enode": "b06bca847a8c27e7de209787dbbabc3811a356ffa9ee74b26917370a0f35978704208abe4faaad3279e4d877565d1f0ec765b159c2f55f303908a6230b9af99f",
+            "enodeAddress": "107.23.247.153",
+            "enodeAddressPort": "30303",
+            "nodeKeyPublic": "0xc1C6048eE3079fe87c36BCE542672e85A19fE967",
+            "egress": "34.205.199.2"
+        }
+        ]
+      }
+
+
+
+# TODO:changed
+service:
+  p2p:
+    enabled: true
+    type: LoadBalancer
+    port: 30303
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "external"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
+      service.beta.kubernetes.io/aws-load-balancer-ip-address-type: "ipv4"
+      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=true,deregistration_delay.timeout_seconds=120,deregistration_delay.connection_termination.enabled=true,stickiness.enabled=true,stickiness.type=source_ip
+      service.beta.kubernetes.io/aws-load-balancer-healthcheck-healthy-threshold: "2"
+      service.beta.kubernetes.io/aws-load-balancer-healthcheck-unhealthy-threshold: "2"
+      #service.beta.kubernetes.io/aws-load-balancer-eip-allocations: "eipalloc-0c277b4b817957fcf"
+      # public subnet in us-east-1b
+      service.beta.kubernetes.io/aws-load-balancer-subnets: "subnet-03596a598bd8b0722"
+
+
+
+# TODO
+secretProviderClass:
+  # -- Whether to use CSI Secrets Store (e.g. Azure Key Vault) instead of "traditional" Kubernetes Secret.
+  enabled: false
+
+# TODO
+serviceAccount:
+  # -- Specifies whether a service account should be created.
+  # Must be true if secretProviderClass.enabled is true
+  create: true
+  # -- Annotations to add to the service account
+  annotations:
+    ## Sample for AWS if secretProviderClass.enabled is true
+    # eks.amazonaws.com/role-arn: "arn:aws:iam::838158121660:role/eleaflet-poc-secrets"
+
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+  # -- Whether automounting API credentials for a service account is enabled or not.
+  # See [https://docs.bridgecrew.io/docs/bc_k8s_35](https://docs.bridgecrew.io/docs/bc_k8s_35)
+  automountServiceAccountToken: false

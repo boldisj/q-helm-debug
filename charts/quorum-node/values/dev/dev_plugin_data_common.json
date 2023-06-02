@@ -1,0 +1,53 @@
+{
+  "peers": [
+    {
+      "company-name": "gsk",
+      "egress": [
+        "152.51.27.112",
+        "52.242.99.51"
+      ],
+      "enode": "cd475fd2ed12c1b1eff489a7363781850d8bc19f7aac01812ad832644867cbaad7aa755220386e6ca4280f8ebfb89d21437203a59e37dbd27606d263e10cd903",
+      "enodeAddress": "152.51.27.112",
+      "enodeAddressPort": "30303",
+      "nodeKeyPublic": "0x35079BdC8d4A306237cf9aec31071d695Cd21043"
+    },
+    {
+      "company-name": "takeda",
+      "egress": [
+        "3.124.148.159",
+        "3.124.138.229"
+      ],
+      "enode": "d12ca45483f68ac52e73f7e14c81c8a8865cd1e41657fad773e5b5ef1422e9f1b595264f916499b728dca259469ee98f4a4d56f3cd72707f44163e5d42fec2ba",
+      "enodeAddress": "18.156.206.8",
+      "enodeAddressPort": "30303",
+      "nodeKeyPublic": "0xF3B6e1f9e15174ED58A9440319d90462c5Fb5795"
+    },
+    {
+      "company-name": "msd",
+      "egress": [
+        "44.195.202.195",
+        "52.20.219.109"
+      ],
+      "enode": "838a0bf2cee4dedc7753b5288ccb28595dcfbabb17eac571484aeba0377a8b8c6c30ab78703ca4d19db5d2d320abbda7ff95e5180b4db4cef75f1300d043e1ca",
+      "enodeAddress": "75.2.83.19",
+      "enodeAddressPort": "30303",
+      "nodeKeyPublic": "0x374c10643EAd88A57c707f9DAF91C3A99da04743"
+    },
+    {
+      "company-name": "bayer",
+      "egress": "3.69.179.99",
+      "enode": "6288a95602c831e243be3fff48481d2785d26c844eb668535d39979dbb2de50b0acc52da8156f57a1513b3f68265cdfdc35ec033dc8f90d58f0f5c92be298e5e",
+      "enodeAddress": "3.69.217.73",
+      "enodeAddressPort": "30303",
+      "nodeKeyPublic": "0xaaBF92868622B738B81Fd4EE5a8706e1cB43aF2d"
+    },
+    {
+      "company-name": "jnj",
+      "egress": "148.177.144.121",
+      "enode": "24f33e3a9ac2b21464584f8e7323d7c928071e94daff1c2dc1f35e30ec04587f74575dbd712125ce20303cb16785b00cd45e7a176245b39cc67d690c23ae71f5",
+      "enodeAddress": "148.177.144.121",
+      "enodeAddressPort": "30303",
+      "nodeKeyPublic": "0x3A5C3EC474979B6Db2AC9ccC1aA2b4F2F515FCf6"
+    }
+  ]
+}

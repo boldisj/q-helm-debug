@@ -1,0 +1,297 @@
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+# deployments.apps "quorum" was not valid:
+# * <nil>: Invalid value: "The edited file failed validation": yaml: line 163: found a tab character that violates indentation
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "4"
+    meta.helm.sh/release-name: quorum-node
+    meta.helm.sh/release-namespace: default
+  creationTimestamp: "2023-04-05T09:16:52Z"
+  generation: 8
+  labels:
+    app.kubernetes.io/instance: quorum-node
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: quorum
+    app.kubernetes.io/version: 22.7.0
+    helm.sh/chart: quorum-node-0.6.5
+  name: quorum
+  namespace: default
+  resourceVersion: "19491674"
+  uid: eb860742-6409-487c-8cf2-54d6cfaf6de4
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: quorum-node
+      app.kubernetes.io/name: quorum
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        checksum/scripts: 9ca6e89600cf6120387c88862c38fdbe7ba10c79f784b947c36e97bc2f5ec2ea
+        checksum/secret: bb4304f6b75f55650c9e7ca74cc002b0a4500a18920cae7023d06f85bd211a7f
+        checksum/settings: a028bc36a2ca5d97b95b1b469d60fec280f1fc35cbcaa452fe59024ec1e6a9ce
+        prometheus.io/path: /debug/metrics/prometheus
+        prometheus.io/port: "9545"
+        prometheus.io/scrape: "true"
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/instance: quorum-node
+        app.kubernetes.io/name: quorum
+      name: quorum
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - args:
+        - |
+
+          ln -sf /quorum/home/permission-nodes/permissioned-nodes.json /quorum/home/dd/permissioned-nodes.json
+          ln -sf /quorum/home/permission-nodes/permissioned-nodes.json /quorum/home/dd/static-nodes.json
+          cat /quorum/home/genesis/genesis-geth.json
+          chmod 644 /quorum/home/dd/keystore/key
+          touch /quorum/home/dd/password.txt
+          /usr/local/bin/geth \
+            --datadir /quorum/home/dd \
+            --nodiscover \
+            --permissioned \
+            --nat=none \
+            --verbosity 5 \
+            --emitcheckpoints \
+            --gcmode archive \
+            --istanbul.blockperiod 3 --mine --miner.threads 1 \
+            --syncmode full \
+            --networkid 10 \
+            --snapshot=false --txlookuplimit=0 --cache.preimages --rpc.allow-unprotected-txs \
+            --metrics --metrics.addr "0.0.0.0" --metrics.port "9545" \
+            --port 30303 \
+            --http --http.addr 0.0.0.0 --http.port 8545 --http.api "admin,eth,debug,miner,net,txpool,personal,web3,istanbul" \
+            --http.corsdomain "*" --http.vhosts "*" \
+            2>&1 | tee -a /quorum/logs/quorum.log
+        command:
+        - sh
+        - -cx
+        env:
+        - name: PRIVATE_CONFIG
+          value: ignore
+        - name: THIS_NODE_ID
+          value: quorum
+        - name: THIS_ENODE
+          value: 5755ef4d6dee4b1d02d347ddf84b93c7a39f95b059b9b9a82388cec6d97db255b59f4319ea7a7594c0e3b089025c410146741540f35038ec836a208b08970f3a
+        image: base-image-dev.dock.merck.com/eleaflet/quorum/23.4.0:build-179
+        imagePullPolicy: Always
+        name: quorum
+        ports:
+        - containerPort: 8545
+          protocol: TCP
+        - containerPort: 30303
+          protocol: TCP
+        - containerPort: 9545
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /quorum/home/dd/geth.ipc
+          failureThreshold: 3
+          initialDelaySeconds: 20
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsGroup: 10000
+          runAsNonRoot: true
+          runAsUser: 10000
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /quorum/home
+          name: pvc-data
+          subPath: quorum
+        - mountPath: /quorum/logs
+          name: pvc-logs
+          subPath: quorum-logs
+        - mountPath: /quorum/home/dd/geth/nodekey
+          name: secret
+          readOnly: true
+          subPath: nodekey
+        - mountPath: /quorum/home/dd/keystore/key
+          name: secret
+          readOnly: true
+          subPath: key
+        - mountPath: /quorum/home/genesis/genesis-geth.json
+          name: cm-settings
+          readOnly: true
+          subPath: genesis-geth.json
+        - mountPath: /quorum/home/dd/geth/enode
+          name: cm-settings
+          readOnly: true
+          subPath: enode
+        - mountPath: /quorum/home/permission-nodes/permissioned-nodes.json
+          name: cm-settings
+          readOnly: true
+          subPath: permissioned-nodes.json
+        - mountPath: /quorum/home/istanbul-validator-config.toml/istanbul-validator-config.toml
+          name: cm-settings
+          readOnly: true
+          subPath: istanbul-validator-config.toml
+        - mountPath: /geth-helpers/geth-attach.sh
+          name: cm-scripts
+          readOnly: true
+          subPath: geth-attach.sh
+        - mountPath: /geth-helpers/geth-exec.sh
+          name: cm-scripts
+          readOnly: true
+          subPath: geth-exec.sh
+        - mountPath: /quorum/home/node-management/ibft_propose.sh
+          name: cm-scripts
+          readOnly: true
+          subPath: ibft_propose.sh
+        - mountPath: /quorum/home/node-management/ibft_propose_all.sh
+          name: cm-scripts
+          readOnly: true
+          subPath: ibft_propose_all.sh
+##########SIDE CAR###################          
+      - name: net-sidecar
+        image: base-image-dev.dock.merck.com/eleaflet/network-tools:build-145 # tohle plati pro DEV pro SANDBOX to musi byt original  wbitt/network-multitool 
+        imagePullPolicy: Always
+        env:
+        - name: HTTP_PORT
+          value: "1180"
+        - name: HTTPS_PORT
+          value: "11443"
+        ports:
+        - containerPort: 1180
+          name: http-port
+        - containerPort: 11443
+          name: https-port
+        resources:
+          requests:
+            cpu: "1m"
+            memory: "20Mi"
+          limits:
+            cpu: "10m"
+            memory: "20Mi"
+        securityContext:
+          runAsUser: 0
+          capabilities:
+            add: ["NET_ADMIN"]
+ ################
+      dnsPolicy: ClusterFirst
+
+      initContainers:
+      - args:
+        - |
+          if [ ! -f /quorum/home/dd/genesis_created ]; then
+            /usr/local/bin/geth --datadir /quorum/home/dd init /quorum/home/genesis/genesis-geth.json
+            date > /quorum/home/dd/genesis_created
+          fi
+        command:
+        - sh
+        - -cx
+        image: base-image-dev.dock.merck.com/eleaflet/quorum/23.4.0:build-179
+        imagePullPolicy: IfNotPresent
+        name: quorum-genesis-init
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsGroup: 10000
+          runAsNonRoot: true
+          runAsUser: 10000
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /quorum/home
+          name: pvc-data
+          subPath: quorum
+        - mountPath: /quorum/home/genesis/genesis-geth.json
+          name: cm-settings
+          readOnly: true
+          subPath: genesis-geth.json
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 10000
+        runAsGroup: 10000
+        runAsUser: 10000
+      serviceAccount: quorum-secrets
+      serviceAccountName: quorum-secrets
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: pvc-data
+        persistentVolumeClaim:
+          claimName: quorum-data
+      - name: pvc-logs
+        persistentVolumeClaim:
+          claimName: quorum-logs
+      - csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: quorum
+        name: secret
+      - configMap:
+          defaultMode: 288
+          items:
+          - key: enode
+            path: enode
+          - key: permissioned-nodes.json
+            path: permissioned-nodes.json
+          - key: istanbul-validator-config.toml
+            path: istanbul-validator-config.toml
+          - key: genesis-geth.json
+            path: genesis-geth.json
+          name: quorum-settings
+        name: cm-settings
+      - configMap:
+          defaultMode: 360
+          items:
+          - key: geth-attach.sh
+            path: geth-attach.sh
+          - key: geth-exec.sh
+            path: geth-exec.sh
+          - key: ibft_propose.sh
+            path: ibft_propose.sh
+          - key: ibft_propose_all.sh
+            path: ibft_propose_all.sh
+          name: quorum-scripts
+        name: cm-scripts
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2023-04-05T09:16:52Z"
+    lastUpdateTime: "2023-05-30T14:05:11Z"
+    message: ReplicaSet "quorum-694dccd4c" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  - lastTransitionTime: "2023-06-01T08:18:29Z"
+    lastUpdateTime: "2023-06-01T08:18:29Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  observedGeneration: 8
+  readyReplicas: 1
+  replicas: 1
+  updatedReplicas: 1

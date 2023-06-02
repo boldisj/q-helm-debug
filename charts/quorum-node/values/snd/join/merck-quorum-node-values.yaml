@@ -1,0 +1,173 @@
+# Default values.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  # -- The repository of the Quorum container image  -use Merck artifactory
+  repository: "base-image.dock.merck.com/eleaflet/quorum/22.7.3"
+  # -- Image Pull Policy
+  pullPolicy: Always
+  # -- Image tag
+  tag: "22.7.3"
+  # -- sha256 digest of the image.
+  # Do not add the prefix "@sha256:"
+  sha: "8fbfbc0c06137335df085f988124ee29cab3aef370478d76a2405e828cc0456d"
+
+# -- Override the full name
+fullnameOverride: ""
+# -- override the name
+nameOverride: ""
+
+# -- Secret(s) for pulling an container image from a private registry.
+# See [https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)
+imagePullSecrets: []
+
+# persistence:
+# Settings for the data PVC.
+persistence:
+  # Settings for the data PVC.
+  data:
+    # -- The name of an existing PVC to use instead of creating a new one.
+    # existingClaim: "test-q-rel-quorum-node-data"
+    # -- Name of the storage class for data PVC.
+    # If empty or not set then storage class will not be set - which means that the default storage class will be used.
+    storageClassName: "gp3"
+    size: "25Gi"
+
+  # Settings for the logging PVC.
+  logs:
+    # -- Enables logging to a persistent volume.
+    # if disabled, logging will be to stdout only.
+    enabled: true
+    # -- The name of an existing PVC to use instead of creating a new one.
+    # existingClaim: "test-q-rel-quorum-node-logs"
+    # -- Name of the storage class for logs PVC.
+    # If empty or not set then storage class will not be set - which means that the default storage class will be used.
+    storageClassName: "gp3"
+    # -- Size of the logs PVC volume.
+    size: "10Gi"
+
+#     dataSource:
+#       # {}
+#       # For cloning from an existing volume
+#       # See [https://kubernetes.io/docs/concepts/storage/volume-pvc-datasource/](https://kubernetes.io/docs/concepts/storage/volume-pvc-datasource/)
+#       kind: PersistentVolumeClaim
+#       name: test-q-rel-quorum-node-logs
+
+#       # # For creating from a snapshot (here AWS)
+#       # # [https://aws.amazon.com/blogs/containers/migrating-amazon-eks-clusters-from-gp2-to-gp3-ebs-volumes/](https://aws.amazon.com/blogs/containers/migrating-amazon-eks-clusters-from-gp2-to-gp3-ebs-volumes/)
+#       # name: imported-aws-snapshot
+#       # kind: VolumeSnapshot
+#       # apiGroup: snapshot.storage.k8s.io
+
+#     volumeSnapshots:
+#       # -- Whether to create snapshots before helm upgrading or not.
+#       # The name of the VolumeSnapshot will be "<helm release name>-upgrade-to-revision-<helm revision>-<UTC timestamp YYYYMMDDHHMM>", e.g. "epi-upgrade-to-revision-19-202206221211"
+#       preUpgradeEnabled: false
+#       # -- Whether to create final snapshot before delete.
+#       # The name of the VolumeSnapshot will be "<helm release name>-final-<UTC timestamp YYYYMMDDHHMM>", e.g. "epi-final-202206221213"
+#       finalSnapshotEnabled: true
+
+#       waitForReadyToUse: true
+
+service:
+  p2p:
+    # -- Whether to deploy the P2P service or not.
+    enabled: true
+    # -- Either ClusterIP, NodePort or LoadBalancer for P2P Service.
+    # See [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/)
+    type: LoadBalancer
+    # -- Port where the P2P service will be exposed.
+    port: 30303
+    # -- Annotations for the P2P service.
+    # See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws)
+    # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "external"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
+      #TODO-TF to be populated from Terraform ?
+      #service.beta.kubernetes.io/aws-load-balancer-name: "quorum-node-poc"
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
+      service.beta.kubernetes.io/aws-load-balancer-ip-address-type: "ipv4"
+      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=true,deregistration_delay.timeout_seconds=120,deregistration_delay.connection_termination.enabled=true,stickiness.enabled=true,stickiness.type=source_ip
+      service.beta.kubernetes.io/aws-load-balancer-healthcheck-healthy-threshold: "2"
+      service.beta.kubernetes.io/aws-load-balancer-healthcheck-unhealthy-threshold: "2"
+      #TODO-TF EIP - public IP static address - to be populated from Terraform
+      #service.beta.kubernetes.io/aws-load-balancer-eip-allocations: "eipalloc-0c277b4b817957fcf"
+      #TODO-TF public subnet for NLB
+      #service.beta.kubernetes.io/aws-load-balancer-subnets: "subnet-0f9bdc6e09c43c492"
+      #TODO-TF additional tags - to be populated from Terraform ?
+      #service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: Application=eleaflet,Costcenter=10000089,DataClassification=Public,Consumer=srv-epi-sandbox,Division=MMD,ContactMail=boldisj@merck.com
+
+    # -- A list of CIDR ranges to whitelist for ingress traffic to the P2P service if type is LoadBalancer.
+    # If list is empty, Kubernetes allows traffic from 0.0.0.0/0 to the Node Security Group(s)
+    #TODO-TF - will be updated from epi-shared-repo
+    loadBalancerSourceRanges:
+      # - 8.8.8.8/32
+      # - 8.8.4.4/32
+
+  rpc:
+    # -- Whether to deploy the RPC service or not.
+    enabled: true
+    # -- Either ClusterIP, NodePort or LoadBalancer for RPC Service.
+    # See [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/)
+    type: ClusterIP
+    # -- Port where the RPC service will be exposed.
+    port: 8545
+    # -- Annotations for the RPC service.
+    # See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws)
+    # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
+    annotations: {}
+    # -- A list of CIDR ranges to whitelist for ingress traffic to the RPC service if type is LoadBalancer.
+    # If list is empty, Kubernetes allows traffic from 0.0.0.0/0 to the Node Security Group(s)
+    #TODO-TF - this should be limited to only subnets (private) where ehtadapters are deployed
+    loadBalancerSourceRanges:
+      # - 8.8.8.8/32
+      # - 8.8.4.4/32
+
+# -- Affinity for scheduling a pod.
+# See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)
+#
+# Notes for AWS: We want to schedule the pod in a certain availability zone, here eu-west-1a
+# Must be the same zone as the NLB - see service annotation service.beta.kubernetes.io/aws-load-balancer-subnets
+# Please note, that your nodes must be labeled accordingly!
+# See [https://kubernetes.io/docs/reference/labels-annotations-taints/#topologykubernetesiozone](https://kubernetes.io/docs/reference/labels-annotations-taints/#topologykubernetesiozone)
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values:
+                - us-east-1a
+
+# -- Node Selectors in order to assign pods to certain nodes.
+# See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)
+nodeSelector: {}
+
+# -- Tolerations for scheduling a pod.
+# See [https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/)
+tolerations: []
+
+# -- Annotations added to the pod
+podAnnotations: {}
+
+# Settings for Containers with kubectl installed used by Jobs "pre-upgrade-volumesnapshot", "propose-validators" and "final-volumesnapshot"
+kubectl:
+  # -- Time to keep the Job after finished in case of an error. If no error occured the Jobs will immediately by deleted.
+  # If value is not set, then 'ttlSecondsAfterFinished' will not be set.
+  ttlSecondsAfterFinished: 300
+  image:
+    # -- The repository of the container image containing kubectl
+    repository: base-image.dock.merck.com/eleaflet/kubectl/1.21.14/rel-2022w29
+    # -- Image Pull Policy
+    pullPolicy: Always
+    # -- The Tag of the image containing kubectl. Minor Version should match to your Kubernetes Cluster Version.
+    tag: "latest"
+    # -- sha256 digest of the image.
+    # Do not add the prefix "@sha256:"
+    # <br/>
+    # Defaults to image digest for "bitnami/kubectl:1.21.14", see [https://hub.docker.com/layers/kubectl/bitnami/kubectl/1.21.14/images/sha256-f9814e1d2f1be7f7f09addd1d877090fe457d5b66ca2dcf9a311cf1e67168590?context=explore](https://hub.docker.com/layers/kubectl/bitnami/kubectl/1.21.14/images/sha256-f9814e1d2f1be7f7f09addd1d877090fe457d5b66ca2dcf9a311cf1e67168590?context=explore)
+    # <!-- # pragma: allowlist secret -->
+    sha: "d074c3b1a34809398495d94d98883d531c4281cc982038ef7bac6cc8bf88ee16" # pragma: allowlist secret
