@@ -1,0 +1,15 @@
+{
+  "peers": [
+    {
+      "company-name": "msd",
+      "egress": [
+        "44.195.202.195",
+        "52.20.219.109"
+      ],
+      "enode": "838a0bf2cee4dedc7753b5288ccb28595dcfbabb17eac571484aeba0377a8b8c6c30ab78703ca4d19db5d2d320abbda7ff95e5180b4db4cef75f1300d043e1ca",
+      "enodeAddress": "quorum-nlb-3cb3bf52f1017f0b.elb.us-east-1.amazonaws.com",
+      "enodeAddressPort": "30303",
+      "nodeKeyPublic": "0x374c10643EAd88A57c707f9DAF91C3A99da04743"
+    }
+  ]
+}
