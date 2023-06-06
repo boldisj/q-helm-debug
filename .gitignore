@@ -147,10 +147,11 @@ terragrunt
 # local env
 *env.list
 
-
-
 # Helm 
 requirements.lock
 Chart.lock
 
 **/working/*
+
+# archived files
+**/archive/*
